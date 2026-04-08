@@ -1,14 +1,16 @@
 use wasm_bindgen::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use chrono::{Duration, Utc};
 use rand::Rng;
 
+mod types;
+mod core;
+mod detectors;
+mod math;
+
 // Import local modules (adjust paths if your structure differs)
-use crate::types::{Candle, DetectionMatrix, SystemState, ReversePeriodConfig, LambdaWeights, StructuralRange};
+use crate::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange};
 use crate::core::ReversePeriodEngine;
-use crate::detectors;
-use crate::math;
 
 // --- 1. Serializable Structures for JS ---
 
@@ -114,7 +116,7 @@ impl WasmEngine {
         let new_close = last_candle.close + price_delta;
         
         // Mocking Open/High/Low based on the close
-        let body_size = (new_close - last_candle.close).abs();
+        let _body_size = (new_close - last_candle.close).abs();
         let noise = (rand::thread_rng().gen::<f64>() - 0.5) * 0.0001;
         
         let new_candle = Candle {
@@ -126,11 +128,11 @@ impl WasmEngine {
             volume: 1000.0 + (rand::thread_rng().gen::<f64>() * 500.0),
         };
 
-        self.candles.push(new_candle);
+        self.candles.push(new_candle.clone());
 
         // 2. Run the Core Logic
         // Calculate mock volatility and confidence for the simulation
-        let atr = math::calculate_atr(&self.candles, 14).unwrap_or(0.0001);
+        let _atr = math::calculate_atr(&self.candles, 14).unwrap_or(0.0001);
         let current_vol = (new_candle.high - new_candle.low) / new_candle.close;
         
         // Confidence increases if we are near edges of range (Mock logic)
@@ -144,7 +146,7 @@ impl WasmEngine {
         // 3. Gather State for UI
         // Note: We re-calculate matrix and range here because the engine
         // doesn't necessarily store them as public fields in the previous step.
-        let matrix = detectors::DetectionMatrix::analyze(
+        let matrix = DetectionMatrix::analyze(
             &self.candles, 
             &self.config, 
             current_vol, 
@@ -250,7 +252,7 @@ impl WasmEngine {
 mod meta_cognitive;
 mod neuro_symbolic; // The stub module
 
-use meta_cognitive::{MetaCognitiveToolSelector, IPDAMetaCognitiveServer};
+use meta_cognitive::MetaCognitiveToolSelector;
 
 // ... existing WasmEngine implementation ...
 
