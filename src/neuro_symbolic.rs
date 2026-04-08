@@ -33,6 +33,7 @@ pub fn extract_relations(_graph: &Graph) -> Vec<String> {
     vec!["entity_pattern".to_string(), "action_trade".to_string()]
 }
 
+#[allow(dead_code)]
 pub fn compile_blocks(_graph: &Graph) -> Graph {
     _graph.clone()
 }

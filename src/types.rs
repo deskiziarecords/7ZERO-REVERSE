@@ -14,7 +14,9 @@ pub struct Candle {
 /// Configuration for the Reverse Period Engine
 #[derive(Debug, Clone)]
 pub struct ReversePeriodConfig {
+    #[allow(dead_code)]
     pub lookback_20: usize,
+    #[allow(dead_code)]
     pub lookback_40: usize,
     pub lookback_60: usize,
     pub atr_period: usize,
@@ -62,6 +64,7 @@ pub struct DetectionMatrix {
 #[derive(Debug, PartialEq)]
 pub enum SystemState {
     Delivery,    // Trending phase
+    #[allow(dead_code)]
     Consolidation, // Chop/Range
     ReversePeriod, // Active Reversal Trade
     Halted,      // Veto or System Error

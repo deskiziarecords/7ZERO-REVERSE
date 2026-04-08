@@ -6,6 +6,7 @@ use std::collections::HashMap;
 
 // --- Enums & Structs ---
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ToolType {
@@ -68,8 +69,10 @@ pub struct PerformanceEntry {
 // --- MetaCognitiveToolSelector ---
 
 pub struct MetaCognitiveToolSelector {
+    #[allow(dead_code)]
     tool_history: Vec<String>,
     performance_memory: HashMap<String, Vec<PerformanceEntry>>,
+    #[allow(dead_code)]
     current_plan: Vec<ToolCall>,
 }
 
