@@ -1,30 +1,39 @@
 # 7ZERO-REVERSE: IPDA REVERSE PERIOD TERMINAL
 
-7ZERO-REVERSE is a high-frequency trading engine and visualization terminal designed to detect and execute "Reverse Period" protocols based on the Interbank Price Delivery Algorithm (IPDA). It combines a high-performance Rust core with a responsive React frontend, connected via WebAssembly (WASM).
+7ZERO-REVERSE is a high-performance trading engine and visualization terminal designed to detect and execute "Reverse Period" protocols based on the Interbank Price Delivery Algorithm (IPDA). It combines a modular Rust backend with a responsive React frontend, connected via WebAssembly (WASM).
 
 ##  Key Features
 
-- **Core IPDA Logic**: Implements Phase Entrapment, Temporal Alignment, Spectral Inversion, and Liquidity Inversion detection.
+- **Core IPDA Logic**: Implements Phase Entrapment, Temporal Alignment, Spectral Inversion, and Liquidity Inversion detection via the Lambda Detection Matrix.
+- **Real-time Data Processing**: Integrated layers for OANDA tick streaming and automated candle building.
+- **Event-Driven Architecture**: High-performance engine orchestrating state management and signal detection on a per-candle basis.
 - **Structural Detection**: Automatically identifies market regimes (Delivery, Consolidation, Reverse Period) using an Adelic Manifold Validator.
-- **High-Performance Core**: Written in Rust for low-latency signal processing and mathematical validation.
-- **WASM Integration**: Seamlessly bridges the Rust engine with a modern React/JavaScript frontend.
-- **Interactive Terminal**: Real-time candlestick charting with structural range ("The Box") and equilibrium (Mean) visualization.
+- **WASM Integration**: Seamlessly bridges the Rust engine with a modern React/JavaScript frontend for real-time visualization.
 
 ##  Architecture
 
-The system is split into two primary layers:
+The Rust backend is organized into a modular structure designed for scalability and low-latency processing:
 
-### 1. The Rust Core (`/src`)
-- **`types.rs`**: Core data structures (Candle, Configuration, System States).
-- **`core.rs`**: The `ReversePeriodEngine`, implementing the main update loop and transition logic.
-- **`detectors.rs`**: The `DetectionMatrix`, which analyzes market data across 6 Lambda (λ) dimensions.
-- **`math.rs`**: Low-level utilities for SMA, ATR, Standard Deviation, and Adelic mathematical validation.
-- **`meta_cognitive.rs` & `neuro_symbolic.rs`**: Experimental layers for intent analysis and pattern recognition.
+### 1. Data Layer (`/src/data`)
+- **`realtime.rs`**: Handles connections to market data providers (e.g., OANDA) and streams raw price ticks.
+- **`candle_builder.rs`**: Aggregates raw ticks into standard interval candles (e.g., 1-minute).
 
-### 2. The React Frontend (`src/App.jsx`)
+### 2. Engine Layer (`/src/engine`)
+- **`core.rs`**: The central `Engine` orchestrator, managing system state transitions and signal execution.
+- **`detectors.rs`**: Implements the `LambdaDetectors` and `DetectionMatrix` for institutional DNA verification.
+- **`state.rs`**: Manages a rolling window of market data using optimized state containers.
+
+### 3. Models Layer (`/src/models`)
+- **`math.rs`**: Low-level mathematical utilities (SMA, ATR, Standard Deviation) and the Adelic Manifold Validator.
+- **`meta_cognitive.rs` & `neuro_symbolic.rs`**: Experimental layers for query intent analysis and pattern recognition.
+
+### 4. Types Layer (`/src/types`)
+- **`types.rs`**: Centralized definition of core data structures, configurations, and system states.
+
+### 5. Frontend (`/frontend` & `src/App.jsx`)
 - Uses `lightweight-charts` for financial data visualization.
 - Integrates the Rust engine via `@wasm-bindgen` for real-time tick-by-tick analysis.
-- Provides a "Detection Matrix" dashboard to monitor λ-indicators and system health.
+- Provides a comprehensive dashboard to monitor Lambda indicators and engine health.
 
 ##  The Detection Matrix (λ)
 
@@ -59,8 +68,9 @@ wasm-pack build
 
 2. (Optional) Run frontend:
 ```bash
+cd frontend
 npm install
-npm start
+npm run dev
 ```
 
 ##  License
