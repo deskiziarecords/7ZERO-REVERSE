@@ -61,7 +61,7 @@ pub struct DetectionMatrix {
 }
 
 /// Current State of the 7 ZERO System
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum SystemState {
     Delivery,    // Trending phase
     #[allow(dead_code)]

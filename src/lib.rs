@@ -3,14 +3,14 @@ use serde::{Deserialize, Serialize};
 use chrono::{Duration, Utc};
 use rand::Rng;
 
-mod types;
-mod core;
-mod detectors;
-mod math;
+pub mod types;
+pub mod data;
+pub mod engine;
+pub mod models;
 
-// Import local modules (adjust paths if your structure differs)
-use crate::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange};
-use crate::core::ReversePeriodEngine;
+use crate::types::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange, SystemState};
+use crate::engine::core::ReversePeriodEngine;
+use crate::models::meta_cognitive::MetaCognitiveToolSelector;
 
 // --- 1. Serializable Structures for JS ---
 
@@ -132,7 +132,7 @@ impl WasmEngine {
 
         // 2. Run the Core Logic
         // Calculate mock volatility and confidence for the simulation
-        let _atr = math::calculate_atr(&self.candles, 14).unwrap_or(0.0001);
+        let _atr = crate::models::math::calculate_atr(&self.candles, 14).unwrap_or(0.0001);
         let current_vol = (new_candle.high - new_candle.low) / new_candle.close;
         
         // Confidence increases if we are near edges of range (Mock logic)
@@ -159,7 +159,7 @@ impl WasmEngine {
 
         // 4. Serialize and Return
         let output = EngineOutput {
-            state: format!("{:?}", self.engine.state),
+            state: format!("{:?}", self.engine.system_state()),
             r_score,
             matrix: DetectionMatrixJS {
                 l1: matrix.lambda1_phase_entrapment,
@@ -246,15 +246,6 @@ impl WasmEngine {
         score
     }
 }
-
-
-// ... existing imports
-mod meta_cognitive;
-mod neuro_symbolic; // The stub module
-
-use meta_cognitive::MetaCognitiveToolSelector;
-
-// ... existing WasmEngine implementation ...
 
 // --- NEW COGNITIVE SERVER WRAPPER ---
 

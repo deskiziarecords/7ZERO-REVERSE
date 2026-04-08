@@ -1,4 +1,4 @@
-use crate::neuro_symbolic::{build_semantic_graph, extract_relations};
+use crate::models::neuro_symbolic::{build_semantic_graph, extract_relations};
 use chrono::Utc;
 use regex::Regex;
 use serde::{Deserialize, Serialize};

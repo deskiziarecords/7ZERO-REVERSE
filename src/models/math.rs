@@ -1,4 +1,4 @@
-use crate::types::Candle;
+use crate::types::types::Candle;
 
 pub fn calculate_sma(data: &[f64], period: usize) -> Option<f64> {
     if data.len() < period {
