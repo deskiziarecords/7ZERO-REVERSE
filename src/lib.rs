@@ -244,3 +244,65 @@ impl WasmEngine {
         score
     }
 }
+
+
+// ... existing imports
+mod meta_cognitive;
+mod neuro_symbolic; // The stub module
+
+use meta_cognitive::{MetaCognitiveToolSelector, IPDAMetaCognitiveServer};
+
+// ... existing WasmEngine implementation ...
+
+// --- NEW COGNITIVE SERVER WRAPPER ---
+
+#[wasm_bindgen]
+pub struct CognitiveServer {
+    selector: MetaCognitiveToolSelector,
+}
+
+#[wasm_bindgen]
+impl CognitiveServer {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> CognitiveServer {
+        CognitiveServer {
+            selector: MetaCognitiveToolSelector::new(),
+        }
+    }
+
+    /// Process a natural language query through the Neuro-Symbolic engine
+    #[wasm_bindgen]
+    pub fn ask(&mut self, query: &str) -> JsValue {
+        // 1. Analyze Intent
+        let intent = self.selector.analyze_intent(query);
+        
+        // 2. Generate Plan
+        let plan = self.selector.generate_tool_plan(&intent);
+        
+        // 3. Execute Plan
+        let execution = self.selector.execute_plan(&plan);
+        
+        // 4. Reflect
+        self.selector.reflect_and_learn(&execution, query);
+
+        // 5. Prepare Output for Frontend
+        let response = if execution.final_confidence > 0.7 {
+            format!("High confidence result from {} tool calls.", execution.results.len())
+        } else if execution.final_confidence > 0.4 {
+            "Moderate confidence. Consider additional validation.".to_string()
+        } else {
+            format!("Low confidence ({:.0}%). Recommend manual review.", execution.final_confidence * 100.0)
+        };
+
+        let output = serde_json::json!({
+            "query": query,
+            "intent_type": intent.intent_type,
+            "plan": plan,
+            "confidence": execution.final_confidence,
+            "response": response,
+            "trace": execution.results
+        });
+
+        serde_wasm_bindgen::to_value(&output).unwrap()
+    }
+}
