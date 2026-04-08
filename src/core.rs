@@ -1,6 +1,5 @@
-use crate::detectors::DetectionMatrix;
+use crate::types::{Candle, DetectionMatrix, ReversePeriodConfig, SystemState, StructuralRange};
 use crate::math::{calculate_sma, adelic_manifold_validator};
-use crate::types::{Candle, ReversePeriodConfig, SystemState, StructuralRange};
 
 pub struct ReversePeriodEngine {
     pub config: ReversePeriodConfig,

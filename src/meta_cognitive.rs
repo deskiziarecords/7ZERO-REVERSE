@@ -1,4 +1,4 @@
-use crate::neuro_symbolic::{build_semantic_graph, extract_relations, Graph};
+use crate::neuro_symbolic::{build_semantic_graph, extract_relations};
 use chrono::Utc;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -266,7 +266,7 @@ impl MetaCognitiveToolSelector {
         let mut cumulative_confidence = 1.0;
         let mut adaptations = 0;
 
-        for (i, tool_call) in plan.iter().enumerate() {
+        for (_i, tool_call) in plan.iter().enumerate() {
             // Actor: Execute
             let result = self.simulate_tool_execution(tool_call);
 

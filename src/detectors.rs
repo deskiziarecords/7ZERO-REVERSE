@@ -1,4 +1,5 @@
-use crate::math::{self, calculate_atr, calculate_sma, calculate_std_dev};
+use chrono::Timelike;
+use crate::math::{calculate_atr, calculate_sma};
 use crate::types::{Candle, DetectionMatrix, ReversePeriodConfig};
 
 impl DetectionMatrix {

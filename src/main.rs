@@ -52,7 +52,7 @@ fn generate_mock_data(count: usize) -> Vec<Candle> {
         price += noise;
         
         data.push(Candle {
-            timestamp: now + Duration::hours(i),
+            timestamp: now + Duration::hours(i as i64),
             open: price,
             high: price + 0.0005,
             low: price - 0.0005,
