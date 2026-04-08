@@ -2,7 +2,7 @@
 
 7ZERO-REVERSE is a high-frequency trading engine and visualization terminal designed to detect and execute "Reverse Period" protocols based on the Interbank Price Delivery Algorithm (IPDA). It combines a high-performance Rust core with a responsive React frontend, connected via WebAssembly (WASM).
 
-## 🚀 Key Features
+##  Key Features
 
 - **Core IPDA Logic**: Implements Phase Entrapment, Temporal Alignment, Spectral Inversion, and Liquidity Inversion detection.
 - **Structural Detection**: Automatically identifies market regimes (Delivery, Consolidation, Reverse Period) using an Adelic Manifold Validator.
@@ -10,7 +10,7 @@
 - **WASM Integration**: Seamlessly bridges the Rust engine with a modern React/JavaScript frontend.
 - **Interactive Terminal**: Real-time candlestick charting with structural range ("The Box") and equilibrium (Mean) visualization.
 
-## 🏗️ Architecture
+##  Architecture
 
 The system is split into two primary layers:
 
@@ -26,7 +26,7 @@ The system is split into two primary layers:
 - Integrates the Rust engine via `@wasm-bindgen` for real-time tick-by-tick analysis.
 - Provides a "Detection Matrix" dashboard to monitor λ-indicators and system health.
 
-## 📊 The Detection Matrix (λ)
+##  The Detection Matrix (λ)
 
 The system evaluates market state through six critical filters:
 - **λ1: Phase Entrapment**: Detects prolonged distribution without expansion.
@@ -36,7 +36,7 @@ The system evaluates market state through six critical filters:
 - **λ5: Liquidity Inversion**: Analyzes gradient reversals in the liquidity field.
 - **λ6: Displacement Veto**: A safety mechanism that halts the system during conflicting high-volatility events.
 
-## 🛠️ Setup & Usage
+##  Setup & Usage
 
 ### Prerequisites
 - [Rust](https://rustup.rs/) (2021 edition)
@@ -63,6 +63,6 @@ npm install
 npm start
 ```
 
-## 📜 License
+##  License
 
 Distributed under the MIT License. See `LICENSE` for more information.
