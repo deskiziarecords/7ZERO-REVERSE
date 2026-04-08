@@ -1,6 +1,49 @@
 use chrono::Timelike;
-use crate::math::{calculate_atr, calculate_sma};
-use crate::types::{Candle, DetectionMatrix, ReversePeriodConfig};
+use crate::models::math::{calculate_atr, calculate_sma};
+use crate::types::types::{Candle, DetectionMatrix, ReversePeriodConfig};
+
+pub struct LambdaDetectors {
+    pub config: ReversePeriodConfig,
+    pub last_matrix: DetectionMatrix,
+}
+
+impl LambdaDetectors {
+    pub fn new(config: ReversePeriodConfig) -> Self {
+        Self {
+            config,
+            last_matrix: DetectionMatrix::default(),
+        }
+    }
+
+    pub fn update(&mut self, candles: &[Candle], volatility: f64, confidence: f64, expected_pnl: f64) {
+        if candles.is_empty() {
+            return;
+        }
+
+        // We use the existing analyze logic
+        self.last_matrix = DetectionMatrix::analyze(
+            candles,
+            &self.config,
+            volatility,
+            expected_pnl,
+            confidence,
+        );
+    }
+
+    pub fn verify_institutional_dna(&self) -> bool {
+        let w = &self.config.lambda_weights;
+        let mut score = 0.0;
+        let matrix = &self.last_matrix;
+
+        if matrix.lambda1_phase_entrapment { score += w.lambda1; }
+        if matrix.lambda2_temporal_alignment { score += w.lambda2; }
+        if matrix.lambda3_spectral_inversion { score += w.lambda3; }
+        if matrix.lambda4_confluence_collapse { score += w.lambda4; }
+        if matrix.lambda5_liquidity_inversion { score += w.lambda5; }
+
+        score > 0.6
+    }
+}
 
 impl DetectionMatrix {
     /// Runs the full Core Detection Matrix
@@ -11,6 +54,9 @@ impl DetectionMatrix {
         expected_pnl: f64,
         signal_confidence: f64,
     ) -> Self {
+        if candles.len() < 2 {
+            return Self::default();
+        }
         let atr = calculate_atr(candles, cfg.atr_period).unwrap_or(0.0);
         let current_candle = candles.last().unwrap();
         let prev_candle = candles.get(candles.len() - 2);
@@ -50,7 +96,7 @@ impl DetectionMatrix {
         // Gradient reversal (Dot product < 0)
         let lambda5 = if let Some(prev) = prev_candle {
             let grad_curr = current_candle.close - current_candle.open;
-            let grad_hist = (prev.close - prev.open) + (candles[candles.len()-3].close - candles[candles.len()-3].open);
+            let grad_hist = (prev.close - prev.open) + (candles.get(candles.len().saturating_sub(3)).map(|c| c.close - c.open).unwrap_or(0.0));
             grad_curr * grad_hist < 0.0
         } else {
             false

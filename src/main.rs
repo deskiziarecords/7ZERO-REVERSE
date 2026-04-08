@@ -1,11 +1,11 @@
-mod types;
-mod math;
-mod detectors;
-mod core;
+pub mod types;
+pub mod data;
+pub mod engine;
+pub mod models;
 
 use chrono::{Duration, Utc};
-use types::{Candle, ReversePeriodConfig, LambdaWeights};
-use core::ReversePeriodEngine;
+use types::types::{Candle, ReversePeriodConfig, LambdaWeights};
+use engine::core::ReversePeriodEngine;
 
 fn main() {
     // Setup Configuration
@@ -27,7 +27,7 @@ fn main() {
     // Simulate a market scenario
     for i in 0..50 {
         let new_candle = create_next_candle(&candles, i);
-        candles.push(new_candle);
+        candles.push(new_candle.clone());
 
         // Update Engine
         // Mock inputs: Volatility and Confidence
@@ -36,7 +36,13 @@ fn main() {
 
         engine.update(&candles, vol, conf);
         
-        println!("Bar {}: State={:?}, Damped={}", i + 101, engine.state, engine.is_damped);
+        let state = engine.system_state();
+        let r_score = {
+            let matrix = &engine.engine.detectors.last_matrix;
+            engine.engine.calculate_severity_score(matrix)
+        };
+
+        println!("Bar {}: State={:?}, R-Score={:.2}, Damped={}", i + 101, state, r_score, engine.is_damped());
     }
 }
 
