@@ -8,6 +8,7 @@ pub fn calculate_sma(data: &[f64], period: usize) -> Option<f64> {
     Some(sum / period as f64)
 }
 
+#[allow(dead_code)]
 pub fn calculate_std_dev(data: &[f64], period: usize, mean: f64) -> Option<f64> {
     if data.len() < period {
         return None;
