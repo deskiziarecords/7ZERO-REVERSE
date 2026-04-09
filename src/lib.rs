@@ -8,7 +8,7 @@ pub mod data;
 pub mod engine;
 pub mod models;
 
-use crate::types::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange, SystemState};
+use crate::types::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange};
 use crate::engine::core::ReversePeriodEngine;
 use crate::models::meta_cognitive::MetaCognitiveToolSelector;
 

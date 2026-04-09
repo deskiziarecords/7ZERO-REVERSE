@@ -1,4 +1,3 @@
-use crate::types::types::Candle;
 
 /// Skeleton for OANDA tick streaming
 pub struct RealtimeStream {
