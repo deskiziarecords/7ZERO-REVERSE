@@ -40,6 +40,7 @@ impl From<Candle> for JsCandle {
 
 /// Output state sent to the Frontend
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EngineOutput {
     pub state: String,           // "Delivery", "ReversePeriod", etc.
     pub r_score: f64,            // 0.0 to 1.0
@@ -50,6 +51,7 @@ pub struct EngineOutput {
 
 /// JS-friendly version of DetectionMatrix
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DetectionMatrixJS {
     pub l1: bool, // Phase Entrapment
     pub l2: bool, // Temporal Alignment
@@ -61,6 +63,7 @@ pub struct DetectionMatrixJS {
 
 /// JS-friendly version of StructuralRange
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StructuralRangeJS {
     pub high: f64,
     pub low: f64,

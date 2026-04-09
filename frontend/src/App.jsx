@@ -1,14 +1,37 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createChart, CrosshairMode } from 'lightweight-charts';
 import { Activity, AlertTriangle, Target, Zap, Radio, Cpu, TrendingUp, Shield } from 'lucide-react';
-import { ReversePeriodEngine, SystemState } from './engine.js';
+import { ReversePeriodEngine as JsEngine, SystemState } from './engine.js';
+import initWasm, { WasmEngine } from './pkg/seven_zero_ipda.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function useEngineRef() {
-  const ref = useRef(null);
-  if (!ref.current) ref.current = new ReversePeriodEngine();
-  return ref.current;
+function useEngineState() {
+  const [engine, setEngine] = useState(null);
+  const [useWasm, setUseWasm] = useState(false);
+  const [wasmReady, setWasmReady] = useState(false);
+
+  useEffect(() => {
+    const loadWasm = async () => {
+      try {
+        await initWasm();
+        setWasmReady(true);
+      } catch (e) {
+        console.error("WASM Load Error", e);
+      }
+    };
+    loadWasm();
+  }, []);
+
+  useEffect(() => {
+    if (useWasm && wasmReady) {
+      setEngine(new WasmEngine());
+    } else {
+      setEngine(new JsEngine());
+    }
+  }, [useWasm, wasmReady]);
+
+  return { engine, useWasm, setUseWasm, wasmReady };
 }
 
 function formatPrice(p) {
@@ -71,7 +94,7 @@ function LambdaItem({ meta, active }) {
 // ── Main App ──────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const engine = useEngineRef();
+  const { engine, useWasm, setUseWasm, wasmReady } = useEngineState();
   const clock  = useClock();
 
   const [output, setOutput] = useState({
@@ -200,6 +223,8 @@ export default function App() {
 
   // ── Simulation Loop ────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!engine) return;
+
     const TICK_MS = 800;
 
     const id = setInterval(() => {
@@ -303,6 +328,18 @@ export default function App() {
 
         <div className="header-right">
           <div className="header-clock">{clock}</div>
+          
+          {/* WASM Toggle */}
+          <button 
+            className={`status-badge ${useWasm ? 'reverse' : 'delivery'}`}
+            onClick={() => wasmReady && setUseWasm(!useWasm)}
+            disabled={!wasmReady}
+            style={{ cursor: 'pointer', outline: 'none' }}
+          >
+            <Cpu size={10} style={{ marginRight: 4 }} />
+            {useWasm ? 'WASM CORE' : 'JS SIM'}
+          </button>
+
           <div className={`status-badge ${sc}`}>
             <div className="status-dot" />
             {output.state.replace('_', ' ')}
