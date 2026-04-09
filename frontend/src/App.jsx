@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { createChart, CrosshairMode } from 'lightweight-charts';
+import { createChart, CrosshairMode, CandlestickSeries, LineSeries } from 'lightweight-charts';
 import { Activity, AlertTriangle, Target, Zap, Radio, Cpu, TrendingUp, Shield } from 'lucide-react';
 import { ReversePeriodEngine as JsEngine, SystemState } from './engine.js';
 import initWasm, { WasmEngine } from './pkg/seven_zero_ipda.js';
+import wasmUrl from './pkg/seven_zero_ipda_bg.wasm?url';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +15,7 @@ function useEngineState() {
   useEffect(() => {
     const loadWasm = async () => {
       try {
-        await initWasm();
+        await initWasm(wasmUrl);
         setWasmReady(true);
       } catch (e) {
         console.error("WASM Load Error", e);
@@ -123,7 +124,7 @@ export default function App() {
 
   // ── Chart Init ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    if (!chartContainerRef.current || !engine) return;
 
     const chart = createChart(chartContainerRef.current, {
       width:  chartContainerRef.current.clientWidth,
@@ -158,7 +159,7 @@ export default function App() {
     chartRef.current = chart;
 
     // Candlestick series
-    candleSeriesRef.current = chart.addCandlestickSeries({
+    candleSeriesRef.current = chart.addSeries(CandlestickSeries, {
       upColor:       '#00ff9d',
       downColor:     '#ff4060',
       borderVisible: false,
@@ -167,7 +168,7 @@ export default function App() {
     });
 
     // Mean line
-    meanLineRef.current = chart.addLineSeries({
+    meanLineRef.current = chart.addSeries(LineSeries, {
       color:     '#f59e0b',
       lineWidth: 1,
       lineStyle: 2, // dashed
@@ -177,7 +178,7 @@ export default function App() {
     });
 
     // High line
-    highLineRef.current = chart.addLineSeries({
+    highLineRef.current = chart.addSeries(LineSeries, {
       color:     'rgba(255, 64, 96, 0.5)',
       lineWidth: 1,
       lineStyle: 1,
@@ -187,7 +188,7 @@ export default function App() {
     });
 
     // Low line
-    lowLineRef.current = chart.addLineSeries({
+    lowLineRef.current = chart.addSeries(LineSeries, {
       color:     'rgba(0, 255, 157, 0.5)',
       lineWidth: 1,
       lineStyle: 1,
@@ -219,7 +220,7 @@ export default function App() {
       ro.disconnect();
       chart.remove();
     };
-  }, []);
+  }, [engine]);
 
   // ── Simulation Loop ────────────────────────────────────────────────────────
   useEffect(() => {
