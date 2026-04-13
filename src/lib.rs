@@ -8,7 +8,7 @@ pub mod data;
 pub mod engine;
 pub mod models;
 
-use crate::types::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange};
+use crate::types::types::{Candle, DetectionMatrix, ReversePeriodConfig, LambdaWeights, StructuralRange, SystemState};
 use crate::engine::core::ReversePeriodEngine;
 use crate::models::meta_cognitive::MetaCognitiveToolSelector;
 
@@ -42,11 +42,14 @@ impl From<Candle> for JsCandle {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EngineOutput {
-    pub state: String,           // "Delivery", "ReversePeriod", etc.
+    pub state: SystemState,
     pub r_score: f64,            // 0.0 to 1.0
     pub matrix: DetectionMatrixJS, // The Lambda Booleans
     pub range: StructuralRangeJS, // The Box (High, Low, Mean)
     pub target: f64,             // Equilibrium (Same as Mean)
+    pub is_damped: bool,
+    pub atr: f64,
+    pub confidence: f64,
 }
 
 /// JS-friendly version of DetectionMatrix
@@ -159,10 +162,11 @@ impl WasmEngine {
 
         let range = self.calculate_range();
         let r_score = self.calculate_score(&matrix);
+        let atr = crate::models::math::calculate_atr(&self.candles, 14).unwrap_or(0.0001);
 
         // 4. Serialize and Return
         let output = EngineOutput {
-            state: format!("{:?}", self.engine.system_state()),
+            state: self.engine.system_state(),
             r_score,
             matrix: DetectionMatrixJS {
                 l1: matrix.lambda1_phase_entrapment,
@@ -178,6 +182,9 @@ impl WasmEngine {
                 mean: range.mean,
             },
             target: range.mean,
+            is_damped: self.engine.is_damped(),
+            atr,
+            confidence,
         };
 
         serde_wasm_bindgen::to_value(&output).unwrap()
@@ -239,6 +246,9 @@ impl WasmEngine {
     }
 
     fn calculate_score(&self, matrix: &DetectionMatrix) -> f64 {
+        if matrix.lambda6_displacement_veto {
+            return 0.0;
+        }
         let w = &self.config.lambda_weights;
         let mut score = 0.0;
         if matrix.lambda1_phase_entrapment { score += w.lambda1; }

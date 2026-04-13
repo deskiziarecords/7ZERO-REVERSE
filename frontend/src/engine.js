@@ -81,12 +81,21 @@ export function analyzeDetectionMatrix(candles, cfg, currentVolatility, expected
   const gradHist = (prev.close - prev.open) + (prev2.close - prev2.open);
   const l5 = gradCurr * gradHist < 0;
 
-  // λ6: Displacement Veto — large bullish body vs bearish delivery intent
+  // λ6: Displacement Veto — large body expansion vs structural intent
   const bodySize  = Math.abs(cur.close - cur.open);
   const fullRange = cur.high - cur.low;
-  const isLargeBody = fullRange > 0 && bodySize / fullRange > 0.70;
-  const isAtHigh = cur.close > cur.open;
-  const l6 = isLargeBody && isAtHigh;
+  const isLargeBody = fullRange > 0 && bodySize / fullRange > 0.75;
+  const isExpansion = fullRange > 1.2 * atr;
+
+  const range = calculateStructuralRange(candles, cfg.lookback60);
+  const span = range.high - range.low;
+  const isAtPremium = cur.close > (range.high - 0.25 * span);
+  const isAtDiscount = cur.close < (range.low + 0.25 * span);
+
+  const l6 = isLargeBody && isExpansion && (
+    (isAtPremium && cur.close > cur.open) ||
+    (isAtDiscount && cur.close < cur.open)
+  );
 
   return { l1, l2, l3, l4, l5, l6 };
 }
@@ -108,9 +117,10 @@ export function calculateStructuralRange(candles, lookback = 60) {
 
 // ── R-Score ───────────────────────────────────────────────────────────────────
 
-const LAMBDA_WEIGHTS = { l1: 0.25, l2: 0.15, l3: 0.20, l4: 0.15, l5: 0.25 };
+const LAMBDA_WEIGHTS = { l1: 0.35, l2: 0.25, l3: 0.20, l4: 0.15, l5: 0.05 };
 
 export function calculateRScore(matrix) {
+  if (matrix.l6) return 0;
   let score = 0;
   if (matrix.l1) score += LAMBDA_WEIGHTS.l1;
   if (matrix.l2) score += LAMBDA_WEIGHTS.l2;

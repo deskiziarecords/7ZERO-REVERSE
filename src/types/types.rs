@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 /// Represents a single candle of market data.
 #[derive(Debug, Clone)]
@@ -61,7 +62,8 @@ pub struct DetectionMatrix {
 }
 
 /// Current State of the 7 ZERO System
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SystemState {
     Delivery,    // Trending phase
     #[allow(dead_code)]
