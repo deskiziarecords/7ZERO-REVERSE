@@ -15,22 +15,27 @@
 The Rust backend is organized into a modular structure designed for scalability and low-latency processing:
 
 ### 1. Data Layer (`/src/data`)
+
 - **`realtime.rs`**: Handles connections to market data providers (e.g., OANDA) and streams raw price ticks.
 - **`candle_builder.rs`**: Aggregates raw ticks into standard interval candles (e.g., 1-minute).
 
 ### 2. Engine Layer (`/src/engine`)
+
 - **`core.rs`**: The central `Engine` orchestrator, managing system state transitions and signal execution.
 - **`detectors.rs`**: Implements the `LambdaDetectors` and `DetectionMatrix` for institutional DNA verification.
 - **`state.rs`**: Manages a rolling window of market data using optimized state containers.
 
 ### 3. Models Layer (`/src/models`)
+
 - **`math.rs`**: Low-level mathematical utilities (SMA, ATR, Standard Deviation) and the Adelic Manifold Validator.
 - **`meta_cognitive.rs` & `neuro_symbolic.rs`**: Experimental layers for query intent analysis and pattern recognition.
 
 ### 4. Types Layer (`/src/types`)
+
 - **`types.rs`**: Centralized definition of core data structures, configurations, and system states.
 
 ### 5. Frontend (`/frontend` & `src/App.jsx`)
+
 - Uses `lightweight-charts` for financial data visualization.
 - Integrates the Rust engine via `@wasm-bindgen` for real-time tick-by-tick analysis.
 - Provides a comprehensive dashboard to monitor Lambda indicators and engine health.
@@ -38,6 +43,7 @@ The Rust backend is organized into a modular structure designed for scalability 
 ##  The Detection Matrix (λ)
 
 The system evaluates market state through six critical filters:
+
 - **λ1: Phase Entrapment**: Detects prolonged distribution without expansion.
 - **λ2: Temporal Alignment**: Monitors price movement within specific Killzones (London/NY).
 - **λ3: Spectral Inversion**: Identifies divergence between price and momentum-based expectations.
@@ -54,6 +60,7 @@ The system evaluates market state through six critical filters:
 ##  Setup & Usage
 
 ### Prerequisites
+
 - [Rust](https://rustup.rs/) (2021 edition)
 - [Node.js](https://nodejs.org/) & `npm`
 - [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/)
@@ -68,11 +75,13 @@ cargo run
 To build the WASM package and start the development terminal:
 
 1. Build the WASM package:
+
 ```bash
 wasm-pack build
 ```
 
 2. (Optional) Run frontend:
+
 ```bash
 cd frontend
 npm install
