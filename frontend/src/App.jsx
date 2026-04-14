@@ -198,7 +198,7 @@ export default function App() {
     });
 
     // Seed initial candles
-    const candles = engine.getCandles();
+    const candles = engine.get_candles ? engine.get_candles() : engine.getCandles();
     const chartData = candles.map(c => ({
       time:  Math.floor(c.timestamp / 1000),
       open:  c.open,
@@ -242,9 +242,22 @@ export default function App() {
       const delta = bias + noise;
 
       const result = engine.tick(delta);
-      setOutput(result);
+      
+      // Normalize result: WASM uses snake_case, JS uses camelCase
+      const normalizedResult = useWasm ? {
+        state: result.state,
+        rScore: result.r_score,
+        matrix: result.matrix,
+        range: result.range,
+        target: result.target,
+        isDamped: result.is_damped,
+        atr: result.atr,
+        confidence: result.confidence
+      } : result;
 
-      const newCandles = engine.getCandles();
+      setOutput(normalizedResult);
+
+      const newCandles = engine.get_candles ? engine.get_candles() : engine.getCandles();
       const lc = newCandles[newCandles.length - 1];
       const prevClose = newCandles[newCandles.length - 2]?.close ?? lc.close;
 
