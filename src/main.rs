@@ -7,7 +7,16 @@ use chrono::{Duration, Utc};
 use types::types::{Candle, ReversePeriodConfig, LambdaWeights};
 use engine::core::ReversePeriodEngine;
 
-fn main() {
+use data::bitget::BitgetProvider;
+use data::csv_loader::load_from_csv;
+use data::metatrader::MetaTraderProvider;
+use types::config::BrokerCredentials;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load Credentials from .env
+    let creds = BrokerCredentials::load_from_env();
+
     // Setup Configuration
     let config = ReversePeriodConfig {
         lookback_20: 20,
@@ -22,28 +31,64 @@ fn main() {
     };
 
     let mut engine = ReversePeriodEngine::new(config);
-    let mut candles = generate_mock_data(100); // Start with 100 bars
 
-    // Simulate a market scenario
-    for i in 0..50 {
-        let new_candle = create_next_candle(&candles, i);
-        candles.push(new_candle.clone());
+    // Data Selection (Hardcoded for demonstration, could be CLI args)
+    // Mode options: "MOCK", "BITGET", "CSV", "XM"
+    let mode = "XM"; 
 
-        // Update Engine
-        // Mock inputs: Volatility and Confidence
-        let vol = 0.0005 + (i as f64 * 0.0001); 
-        let conf = if i > 30 { 0.8 } else { 0.4 };
+    let mut candles = match mode {
+        "BITGET" => {
+            println!("Fetching live data from Bitget...");
+            let provider = BitgetProvider::new("BTCUSDT", "1m");
+            provider.fetch_recent_candles(100).await?
+        },
+        "CSV" => {
+            println!("Loading historical data from CSV...");
+            load_from_csv("data/eur_usd_2024.csv")?
+        },
+        "XM" | "METATRADER" => {
+            println!("Connecting to XM/MetaTrader...");
+            if let Some(mt_creds) = creds.xm {
+                let provider = MetaTraderProvider::new(mt_creds, "EURUSD");
+                provider.fetch_recent_candles(100).await?
+            } else {
+                println!("Error: XM Credentials not found in .env");
+                return Ok(());
+            }
+        },
+        _ => {
+            println!("Running in MOCK mode...");
+            generate_mock_data(100)
+        }
+    };
 
-        engine.update(&candles, vol, conf);
-        
-        let state = engine.system_state();
-        let r_score = {
-            let matrix = &engine.engine.detectors.last_matrix;
-            engine.engine.calculate_severity_score(matrix)
-        };
-
-        println!("Bar {}: State={:?}, R-Score={:.2}, Damped={}", i + 101, state, r_score, engine.is_damped());
+    println!("Initial processing of {} candles...", candles.len());
+    for candle in &candles {
+        engine.update(&vec![candle.clone()], 0.001, 0.5);
     }
+
+    // Process future ticks/candles if applicable
+    if mode == "MOCK" {
+        for i in 0..50 {
+            let new_candle = create_next_candle(&candles, i);
+            candles.push(new_candle.clone());
+            engine.update(&candles, 0.0005, 0.8);
+            print_state(&engine, i + 101);
+        }
+    } else {
+        println!("Completed processing. Current State: {:?}", engine.system_state());
+    }
+
+    Ok(())
+}
+
+fn print_state(engine: &ReversePeriodEngine, bar_idx: usize) {
+    let state = engine.system_state();
+    let r_score = {
+        let matrix = &engine.engine.detectors.last_matrix;
+        engine.engine.calculate_severity_score(matrix)
+    };
+    println!("Bar {}: State={:?}, R-Score={:.2}, Damped={}", bar_idx, state, r_score, engine.is_damped());
 }
 
 // --- Mock Data Generators ---
