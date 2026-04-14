@@ -63,6 +63,9 @@ impl Engine {
     }
 
     pub fn calculate_severity_score(&self, matrix: &DetectionMatrix) -> f64 {
+        if matrix.lambda6_displacement_veto {
+            return 0.0;
+        }
         let w = &self.detectors.config.lambda_weights;
         let mut score = 0.0;
         if matrix.lambda1_phase_entrapment { score += w.lambda1; }

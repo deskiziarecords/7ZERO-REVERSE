@@ -103,15 +103,32 @@ impl DetectionMatrix {
         };
 
         // Lambda 6: Displacement Veto
-        // 70% body ratio conflict
+        // Triggers if a large "displacement" candle conflicts with the reversal intent.
         let body_size = (current_candle.close - current_candle.open).abs();
         let candle_range = current_candle.high - current_candle.low;
-        let is_large_body = candle_range > 0.0 && (body_size / candle_range) > 0.70;
-        
-        // Assuming macro intent is Short (Delivery exhausted at high), but candle is Huge Bullish
-        // We determine macro intent by where we are in the range (simplified here as high close)
-        let is_at_high = current_candle.close > current_candle.open; 
-        let lambda6 = is_large_body && is_at_high; // Veto triggers if conflict exists
+        let is_large_body = candle_range > 0.0 && (body_size / candle_range) > 0.75;
+        let is_expansion = candle_range > (1.2 * atr);
+
+        // Calculate 60-period structural range
+        let lookback = cfg.lookback_60;
+        let (r_high, r_low) = if candles.len() >= lookback {
+            let h = candles.iter().rev().take(lookback).map(|c| c.high).fold(f64::MIN, f64::max);
+            let l = candles.iter().rev().take(lookback).map(|c| c.low).fold(f64::MAX, f64::min);
+            (h, l)
+        } else {
+            (current_candle.high, current_candle.low)
+        };
+
+        let range_span = r_high - r_low;
+        let is_at_premium = current_candle.close > (r_high - 0.25 * range_span);
+        let is_at_discount = current_candle.close < (r_low + 0.25 * range_span);
+
+        // Veto if we have a huge bullish candle at premium (conflicts with SHORT intent)
+        // or a huge bearish candle at discount (conflicts with LONG intent).
+        let lambda6 = is_large_body && is_expansion && (
+            (is_at_premium && current_candle.close > current_candle.open) ||
+            (is_at_discount && current_candle.close < current_candle.open)
+        );
 
         DetectionMatrix {
             lambda1_phase_entrapment: lambda1,

@@ -132,8 +132,8 @@ const LiveMonitor = () => {
           <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">System State</span>
             <div className="flex items-center gap-2 mt-1">
-              <div className={`w-2 h-2 rounded-full ${state.status === 'REVERSE_PERIOD' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-cyan-500'}`} />
-              <span className="text-lg font-bold text-white">{state.status}</span>
+              <div className={`w-2 h-2 rounded-full ${state.state === 'REVERSE_PERIOD' ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-cyan-500'}`} />
+              <span className="text-lg font-bold text-white">{state.state}</span>
             </div>
           </div>
           <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
