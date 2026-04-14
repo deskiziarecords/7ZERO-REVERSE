@@ -43,7 +43,13 @@ The system evaluates market state through six critical filters:
 - **λ3: Spectral Inversion**: Identifies divergence between price and momentum-based expectations.
 - **λ4: Confluence Collapse**: Validates signal confidence against expected P&L.
 - **λ5: Liquidity Inversion**: Analyzes gradient reversals in the liquidity field.
-- **λ6: Displacement Veto**: A safety mechanism that halts the system during conflicting high-volatility events.
+- **λ6: Displacement Veto**: A safety mechanism that halts execution when high-expansion candles (displacement) at structural range extremes conflict with the expected reversal protocol.
+
+##  Recent Improvements
+
+- **Standardized State Management**: Rust `SystemState` now utilizes `SCREAMING_SNAKE_CASE` serialization for native compatibility with the React/Vite frontend.
+- **Enhanced Engine Diagnostics**: The WASM interface has been expanded to stream ATR, confidence metrics, and damping states directly to the terminal UI.
+- **Refined Veto Protocols**: Lambda 6 now incorporates structural range awareness, ensuring the engine correctly identifies and avoids expansion-based traps at range boundaries.
 
 ##  Setup & Usage
 
