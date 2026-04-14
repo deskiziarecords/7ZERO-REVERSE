@@ -343,7 +343,47 @@ export default function App() {
         <div className="header-right">
           <div className="header-clock">{clock}</div>
           
-          {/* WASM Toggle */}
+          {/* Data Source Selector */}
+          <select 
+            className="status-badge delivery" 
+            style={{ 
+              background: 'var(--bg-deep)', 
+              color: 'var(--text-bright)', 
+              border: '1px solid var(--border)',
+              padding: '2px 8px',
+              marginRight: 8,
+              fontSize: 10,
+              fontFamily: 'var(--font-mono)',
+              borderRadius: 4,
+              cursor: 'pointer'
+            }}
+            onChange={async (e) => {
+              const mode = e.target.value;
+              if (engine && engine.load_data) {
+                try {
+                  console.log(`Switching to ${mode} mode...`);
+                  await engine.load_data(mode);
+                  // Refresh chart data
+                  const candles = engine.get_candles();
+                  const chartData = candles.map(c => ({
+                    time:  Math.floor(c.timestamp / 1000),
+                    open:  c.open,
+                    high:  c.high,
+                    low:   c.low,
+                    close: c.close,
+                  }));
+                  candleSeriesRef.current.setData(chartData);
+                } catch (err) {
+                  alert(`Failed to load ${mode} data: ${err}`);
+                }
+              }
+            }}
+          >
+            <option value="MOCK">SIMULATION</option>
+            <option value="BITGET">BITGET LIVE</option>
+            <option value="XM">XM FOREX</option>
+          </select>
+
           <button 
             className={`status-badge ${useWasm ? 'reverse' : 'delivery'}`}
             onClick={() => wasmReady && setUseWasm(!useWasm)}

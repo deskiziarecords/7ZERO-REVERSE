@@ -221,6 +221,34 @@ impl WasmEngine {
         data
     }
 
+    /// Load historical or live data into the engine
+    #[wasm_bindgen]
+    pub async fn load_data(&mut self, mode: String) -> Result<JsValue, JsValue> {
+        let mut new_candles = match mode.as_str() {
+            "BITGET" => {
+                let provider = crate::data::bitget::BitgetProvider::new("BTCUSDT", "1m");
+                provider.fetch_recent_candles(100).await
+                    .map_err(|e| JsValue::from_str(&e.to_string()))?
+            },
+            "XM" | "METATRADER" => {
+                let creds = crate::types::config::BrokerCredentials::load_from_env();
+                if let Some(mt_creds) = creds.xm {
+                    let provider = crate::data::metatrader::MetaTraderProvider::new(mt_creds, "EURUSD");
+                    provider.fetch_recent_candles(100).await
+                        .map_err(|e| JsValue::from_str(&e.to_string()))?
+                } else {
+                    return Err(JsValue::from_str("XM Credentials not found in .env"));
+                }
+            },
+            _ => {
+                Self::generate_mock_history(100)
+            }
+        };
+
+        self.candles = new_candles;
+        Ok(self.get_candles())
+    }
+
     fn calculate_range(&self) -> StructuralRange {
         // Simplified range calculation matching core logic
         let closes: Vec<f64> = self.candles.iter().map(|c| c.close).collect();

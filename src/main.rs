@@ -34,7 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Data Selection (Hardcoded for demonstration, could be CLI args)
     // Mode options: "MOCK", "BITGET", "CSV", "XM"
-    let mode = "XM"; 
+    let mode = "MOCK"; 
 
     let mut candles = match mode {
         "BITGET" => {
