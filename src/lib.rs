@@ -118,7 +118,10 @@ impl WasmEngine {
     #[wasm_bindgen]
     pub fn tick(&mut self, price_delta: f64) -> JsValue {
         // 1. Create new candle based on last close + delta
-        let last_candle = self.candles.last().unwrap();
+        let last_candle = match self.candles.last() {
+            Some(c) => c,
+            None => return JsValue::NULL,
+        };
         let new_close = last_candle.close + price_delta;
         
         // Mocking Open/High/Low based on the close
@@ -144,7 +147,7 @@ impl WasmEngine {
         // Confidence increases if we are near edges of range (Mock logic)
         let range_high = self.candles.iter().rev().take(60).map(|c| c.high).fold(f64::NAN, f64::max);
         let range_low = self.candles.iter().rev().take(60).map(|c| c.low).fold(f64::NAN, f64::min);
-        let position = (new_candle.close - range_low) / (range_high - range_low);
+        let position = if range_high > range_low { (new_close - range_low) / (range_high - range_low) } else { 0.5 };
         let confidence = if position > 0.9 || position < 0.1 { 0.8 } else { 0.3 };
 
         self.engine.update(&self.candles, current_vol, confidence);
@@ -224,7 +227,7 @@ impl WasmEngine {
     /// Load historical or live data into the engine
     #[wasm_bindgen]
     pub async fn load_data(&mut self, mode: String) -> Result<JsValue, JsValue> {
-        let mut new_candles = match mode.as_str() {
+        let new_candles = match mode.as_str() {
             "BITGET" => {
                 let provider = crate::data::bitget::BitgetProvider::new("BTCUSDT", "1m");
                 provider.fetch_recent_candles(100).await

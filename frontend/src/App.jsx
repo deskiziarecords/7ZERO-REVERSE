@@ -230,7 +230,9 @@ export default function App() {
 
     const id = setInterval(() => {
       // Simulate market — slightly biased random walk with mean reversion
-      const candles = engine.getCandles();
+      const candles = engine.get_candles ? engine.get_candles() : engine.getCandles();
+      if (!candles || candles.length === 0) return;
+
       const last    = candles[candles.length - 1];
       const range   = output.range;
       const span    = range.high - range.low || 0.001;
@@ -243,17 +245,9 @@ export default function App() {
 
       const result = engine.tick(delta);
       
-      // Normalize result: WASM uses snake_case, JS uses camelCase
-      const normalizedResult = useWasm ? {
-        state: result.state,
-        rScore: result.r_score,
-        matrix: result.matrix,
-        range: result.range,
-        target: result.target,
-        isDamped: result.is_damped,
-        atr: result.atr,
-        confidence: result.confidence
-      } : result;
+      // The WASM engine already returns camelCase due to its Serde configuration.
+      // We only need to ensure consistent object structure if needed, but result should be fine.
+      const normalizedResult = result;
 
       setOutput(normalizedResult);
 
@@ -364,7 +358,7 @@ export default function App() {
                   console.log(`Switching to ${mode} mode...`);
                   await engine.load_data(mode);
                   // Refresh chart data
-                  const candles = engine.get_candles();
+                  const candles = engine.get_candles ? engine.get_candles() : engine.getCandles();
                   const chartData = candles.map(c => ({
                     time:  Math.floor(c.timestamp / 1000),
                     open:  c.open,
